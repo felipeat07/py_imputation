@@ -3,7 +3,6 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import accuracy_score
 import random
-import matplotlib.pyplot as plt
 
 # =========================================================
 # Configuração das bases
@@ -35,7 +34,7 @@ DATASETS = {
         ],
         'target': 'Class',
         'drop': [],
-        'n_rows': 2000  # limite linhas para testes rápidos
+        'n_rows': 1000  # limite linhas para testes rápidos
     }
 }
 
@@ -158,28 +157,3 @@ df_results = pd.DataFrame(all_results)
 summary = df_results.groupby(['dataset', 'missing_frac']).agg(['mean', 'std'])
 print("\nResumo final (média e desvio padrão):")
 print(summary)
-
-# =========================================================
-# Gráficos de barras (mean ± std)
-# =========================================================
-methods = ['knn_weighted', 'knn_simple', 'knn_gower']
-
-for dataset in df_results['dataset'].unique():
-    df_plot = summary.loc[dataset]
-    x = np.arange(len(missing_fracs))
-    width = 0.2
-
-    plt.figure(figsize=(8,5))
-    for i, method in enumerate(methods):
-        means = df_plot[method]['mean'].values
-        stds = df_plot[method]['std'].values
-        plt.bar(x + i*width, means, width, yerr=stds, capsize=4, label=method)
-
-    plt.xticks(x + width, [f"{int(f*100)}%" for f in missing_fracs])
-    plt.ylim(0, 1.05)
-    plt.xlabel("Fração de missing (MCAR)")
-    plt.ylabel("Acurácia")
-    plt.title(f"Base: {dataset}")
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
