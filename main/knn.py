@@ -26,30 +26,15 @@ DATASETS = {
         'target': 'Class',
         'drop': []
     },
-    'letter': {
-        'path': 'data/letter_recognition/letter-recognition.data',
-        'columns': [
-            'Class', 'x-box', 'y-box', 'width', 'height',
-            'onpix', 'x-bar', 'y-bar', 'x2bar', 'y2bar',
-            'xybar', 'x2ybr', 'xy2br', 'x-ege', 'xegvy',
-            'y-ege', 'yegvx'
-        ],
+    'iris': {
+        'path': 'data/iris/iris.data',
+        'columns': ['SepalLength', 'SepalWidth',
+                    'PetalLength', 'PetalWidth', 'Class'],
         'target': 'Class',
-        'drop': [],
-        'n_rows': 800
-    },
-    'car': {
-        'path': 'data/car/car.data',
-        'columns': [
-            'buying', 'maint', 'doors',
-            'persons', 'lug_boot', 'safety',
-            'Class'
-        ],
-        'target': 'Class',
-        'drop': [],
-        'n_rows': 800
+        'drop': []
     }
 }
+
 
 # =========================================================
 # Funções auxiliares
