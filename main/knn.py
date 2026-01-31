@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import random
+from numba import njit, prange
 
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 from sklearn.metrics import accuracy_score
@@ -10,30 +11,125 @@ from sklearn.neighbors import KNeighborsClassifier
 # =========================================================
 # Configuração das bases
 # =========================================================
-DATASETS = {
-    'glass': {
-        'path': 'data/glass_identification/glass.data',
-        'columns': ['Id', 'RI', 'Na', 'Mg', 'Al', 'Si', 'K', 'Ca', 'Ba', 'Fe', 'Type'],
-        'target': 'Type',
-        'drop': ['Id']
-    },
+DATASETS = {    
     'wine': {
         'path': 'data/wine/wine.data',
-        'columns': ['Class', 'Alcohol', 'Malic', 'Ash', 'Alcalinity',
-                    'Magnesium', 'Phenols', 'Flavanoids',
-                    'Nonflav', 'Proanth', 'Color', 'Hue',
-                    'OD', 'Proline'],
+        'columns': [
+            'Class',
+            'Alcohol', 'Malic', 'Ash', 'Alcalinity',
+            'Magnesium', 'Phenols', 'Flavanoids',
+            'Nonflav', 'Proanth', 'Color', 'Hue',
+            'OD', 'Proline'
+        ],
         'target': 'Class',
         'drop': []
     },
-    'iris': {
-        'path': 'data/iris/iris.data',
-        'columns': ['SepalLength', 'SepalWidth',
-                    'PetalLength', 'PetalWidth', 'Class'],
+    'image_segmentation': {
+        'path': 'data/image_segmentation/segmentation_full_clean.csv',
+        'sep': ',',
+        'header': 0,
+        'columns': [
+            'Class',
+            'Region-centroid-col', 'Region-centroid-row',
+            'Region-pixel-count', 'Short-line-density-5',
+            'Short-line-density-2', 'Vedge-mean',
+            'Vedge-sd', 'Hedge-mean', 'Hedge-sd',
+            'Intensity-mean', 'Rawred-mean',
+            'Rawblue-mean', 'Rawgreen-mean',
+            'Exred-mean', 'Exblue-mean', 'Exgreen-mean',
+            'Value-mean', 'Saturation-mean', 'Hue-mean'
+        ],
+        'target': 'Class',
+        'drop': [],
+        'n_rows': 100
+    },
+    'pen_based_recognition': {
+        'path': 'data/pen_based_recognition/pendigits_full.csv',
+        'sep': ',',
+        'header': 0,
+        'columns': None,   
+        'target': 'Class',
+        'drop': [],
+        'n_rows': 100
+},
+    'student': {
+        'path': 'data/student/student-por.csv', 
+        'sep': ';',          # IMPORTANTE: essa base usa ';'
+        'header': 0,         # primeira linha é cabeçalho
+        'columns': None,     # já vem com nomes
+        'target': 'G3',      # nota final
+        'drop': []
+    },
+    'obesity': {
+        'path': 'data/obesity/ObesityDataSet_raw_and_data_sinthetic.csv',
+        'sep': ',',
+        'header': 0,
+        'columns': None,
+        'target': 'NObeyesdad',
+        'drop': [],
+        'n_rows': 100
+    },
+        'bank_marketing': {
+        'path': 'data/bank/bank-full.csv',
+        'sep': ';',
+        'header': 0,
+        'columns': None,         # usa os nomes do CSV
+        'target': 'job',           # coluna alvo (yes/no)
+        'drop': [],
+        'n_rows': 100
+    },
+    'balance_scale': {
+        'path': 'data/balance_scale/balance-scale.data',
+        'sep': ',',
+        'header': None,     # NÃO há cabeçalho
+        'columns': [
+            'Class',
+            'Left-Weight',
+            'Left-Distance',
+            'Right-Weight',
+            'Right-Distance'
+        ],
         'target': 'Class',
         'drop': []
+    },
+    'nursery': {
+        'path': 'data/nursery/nursery.data',
+        'sep': ',',
+        'header': None,   # NÃO há cabeçalho
+        'columns': [
+            'Parents',
+            'Has_nurs',
+            'Form',
+            'Children',
+            'Housing',
+            'Finance',
+            'Social',
+            'Health',
+            'Class'
+        ],
+        'target': 'Class',
+        'drop': [],
+        'n_rows': 100
+},
+    'car_evaluation': {
+        'path': 'data/car_evaluation/car.data',
+        'sep': ',',
+        'header': None,   # não tem cabeçalho
+        'columns': [
+            'buying',
+            'maint',
+            'doors',
+            'persons',
+            'lug_boot',
+            'safety',
+            'class'
+        ],
+        'target': 'class',
+        'drop': [],
+        'n_rows': 100
     }
 }
+
 
 
 # =========================================================
@@ -67,11 +163,51 @@ def knn_impute_vectorized(X, y, k=5):
     return y_imp
 
 
+@njit(parallel=True, fastmath=True)
+def gower_num_cat(X_num, X_cat, min_vals, max_vals):
+    n, p_num = X_num.shape
+    _, p_cat = X_cat.shape
+
+    dist = np.zeros((n, n), dtype=np.float32)
+
+    for i in prange(n):
+        for j in range(i + 1, n):
+            # num part
+            s_num = 0.0
+            for k in range(p_num):
+                denom = max_vals[k] - min_vals[k]
+                if denom == 0:
+                    continue
+                s_num += abs(X_num[i, k] - X_num[j, k]) / denom
+
+            # cat part
+            s_cat = 0.0
+            for k in range(p_cat):
+                s_cat += 0 if X_cat[i, k] == X_cat[j, k] else 1
+
+            # normalize
+            denom_total = p_num + p_cat
+            dist_val = (s_num + s_cat) / denom_total
+
+            dist[i, j] = dist_val
+            dist[j, i] = dist_val
+
+    return dist
+
+
 def gower_distance_matrix(X):
-    Xn = (X - X.min()) / (X.max() - X.min())
-    return np.abs(
-        Xn.values[:, None, :] - Xn.values[None, :, :]
-    ).mean(axis=2)
+    num_cols = X.select_dtypes(include=[np.number]).columns
+    cat_cols = X.select_dtypes(exclude=[np.number]).columns
+
+    X_num = X[num_cols].to_numpy(dtype=np.float32)
+    X_cat = X[cat_cols].apply(lambda c: c.astype('category').cat.codes).to_numpy(dtype=np.int32)
+
+    min_vals = np.nanmin(X_num, axis=0)
+    max_vals = np.nanmax(X_num, axis=0)
+
+    return gower_num_cat(X_num, X_cat, min_vals, max_vals)
+
+
 
 
 def knn_gower_impute(df, target, gower_matrix, k=5):
@@ -133,8 +269,24 @@ def run_experiment(cfg, seed, missing_frac, k=5):
     random.seed(seed)
     np.random.seed(seed)
 
-    # leitura
-    df = pd.read_csv(cfg['path'], header=None, names=cfg['columns'])
+  #  # leitura antiga
+  #  df = pd.read_csv(cfg['path'], header=None, names=cfg['columns'])
+
+    # leitura (robusta para bases com e sem header)
+    if cfg.get('columns') is not None:
+        df = pd.read_csv(
+            cfg['path'],
+            header=None,
+            names=cfg['columns'],
+            sep=cfg.get('sep', ',')
+        )
+    else:
+        df = pd.read_csv(
+            cfg['path'],
+            header=cfg.get('header', 0),
+            sep=cfg.get('sep', ',')
+        )
+
     if cfg.get('n_rows'):
         df = df.iloc[:cfg['n_rows']]
     if cfg['drop']:
@@ -143,6 +295,15 @@ def run_experiment(cfg, seed, missing_frac, k=5):
     target = cfg['target']
     X = df.drop(columns=target)
     y = df[target]
+
+    # REMOVE CLASSES COM MENOS DE 2 INSTÂNCIAS (necessário para stratify)
+    vc = y.value_counts()
+    valid_classes = vc[vc >= 2].index
+    mask = y.isin(valid_classes)
+
+    X = X[mask].reset_index(drop=True)
+    y = y[mask].reset_index(drop=True)
+
 
     # split
     X_train, X_test, y_train, y_test = train_test_split(
@@ -200,9 +361,10 @@ def run_experiment(cfg, seed, missing_frac, k=5):
     )
 
     # KNN Gower
-    df_gower = X_train_s.copy()
+    df_gower = X_train.copy()
     df_gower[target] = y_train_miss
-    gower = gower_distance_matrix(X_train_s)
+
+    gower = gower_distance_matrix(X_train)   # <-- aqui!
     y_gower = knn_gower_impute(df_gower, target, gower, k)
     acc_imp_gower = accuracy_score(y_train.loc[miss_idx], y_gower.loc[miss_idx])
     acc_clf_gower = evaluate_knn_classifier(

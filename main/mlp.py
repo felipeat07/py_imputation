@@ -10,31 +10,124 @@ from sklearn.neighbors import KNeighborsClassifier
 
 
 # =========================================================
-# CONFIGURAÇÃO DAS BASES
+# Configuração das bases
 # =========================================================
-
-DATASETS = {
-    'glass': {
-        'path': 'data/glass_identification/glass.data',
-        'columns': ['Id', 'RI', 'Na', 'Mg', 'Al', 'Si', 'K', 'Ca', 'Ba', 'Fe', 'Type'],
-        'target': 'Type',
-        'drop': ['Id']
-    },
+DATASETS = {    
     'wine': {
         'path': 'data/wine/wine.data',
-        'columns': ['Class', 'Alcohol', 'Malic', 'Ash', 'Alcalinity',
-                    'Magnesium', 'Phenols', 'Flavanoids',
-                    'Nonflav', 'Proanth', 'Color', 'Hue',
-                    'OD', 'Proline'],
+        'columns': [
+            'Class',
+            'Alcohol', 'Malic', 'Ash', 'Alcalinity',
+            'Magnesium', 'Phenols', 'Flavanoids',
+            'Nonflav', 'Proanth', 'Color', 'Hue',
+            'OD', 'Proline'
+        ],
         'target': 'Class',
         'drop': []
     },
-    'iris': {
-        'path': 'data/iris/iris.data',
-        'columns': ['SepalLength', 'SepalWidth',
-                    'PetalLength', 'PetalWidth', 'Class'],
+    'image_segmentation': {
+        'path': 'data/image_segmentation/segmentation_full_clean.csv',
+        'sep': ',',
+        'header': 0,
+        'columns': [
+            'Class',
+            'Region-centroid-col', 'Region-centroid-row',
+            'Region-pixel-count', 'Short-line-density-5',
+            'Short-line-density-2', 'Vedge-mean',
+            'Vedge-sd', 'Hedge-mean', 'Hedge-sd',
+            'Intensity-mean', 'Rawred-mean',
+            'Rawblue-mean', 'Rawgreen-mean',
+            'Exred-mean', 'Exblue-mean', 'Exgreen-mean',
+            'Value-mean', 'Saturation-mean', 'Hue-mean'
+        ],
+        'target': 'Class',
+        'drop': [],
+        'n_rows': 100
+    },
+    'pen_based_recognition': {
+        'path': 'data/pen_based_recognition/pendigits_full.csv',
+        'sep': ',',
+        'header': 0,
+        'columns': None,   
+        'target': 'Class',
+        'drop': [],
+        'n_rows': 100
+},
+    'student': {
+        'path': 'data/student/student-por.csv', 
+        'sep': ';',          # IMPORTANTE: essa base usa ';'
+        'header': 0,         # primeira linha é cabeçalho
+        'columns': None,     # já vem com nomes
+        'target': 'G3',      # nota final
+        'drop': []
+    },
+    'obesity': {
+        'path': 'data/obesity/ObesityDataSet_raw_and_data_sinthetic.csv',
+        'sep': ',',
+        'header': 0,
+        'columns': None,
+        'target': 'NObeyesdad',
+        'drop': [],
+        'n_rows': 100
+    },
+        'bank_marketing': {
+        'path': 'data/bank/bank-full.csv',
+        'sep': ';',
+        'header': 0,
+        'columns': None,         # usa os nomes do CSV
+        'target': 'job',           # coluna alvo (yes/no)
+        'drop': [],
+        'n_rows': 100
+    },
+    'balance_scale': {
+        'path': 'data/balance_scale/balance-scale.data',
+        'sep': ',',
+        'header': None,     # NÃO há cabeçalho
+        'columns': [
+            'Class',
+            'Left-Weight',
+            'Left-Distance',
+            'Right-Weight',
+            'Right-Distance'
+        ],
         'target': 'Class',
         'drop': []
+    },
+    'nursery': {
+        'path': 'data/nursery/nursery.data',
+        'sep': ',',
+        'header': None,   # NÃO há cabeçalho
+        'columns': [
+            'Parents',
+            'Has_nurs',
+            'Form',
+            'Children',
+            'Housing',
+            'Finance',
+            'Social',
+            'Health',
+            'Class'
+        ],
+        'target': 'Class',
+        'drop': [],
+        'n_rows': 100
+},
+    'car_evaluation': {
+        'path': 'data/car_evaluation/car.data',
+        'sep': ',',
+        'header': None,   # não tem cabeçalho
+        'columns': [
+            'buying',
+            'maint',
+            'doors',
+            'persons',
+            'lug_boot',
+            'safety',
+            'class'
+        ],
+        'target': 'class',
+        'drop': [],
+        'n_rows': 100
     }
 }
 
@@ -133,15 +226,35 @@ def run_experiment_mlp(cfg, seed, missing_frac, k=5):
     random.seed(seed)
     np.random.seed(seed)
 
-    df = pd.read_csv(cfg['path'], header=None, names=cfg['columns'])
+    df = pd.read_csv(
+        cfg['path'],
+        sep=cfg.get('sep', ','),
+        header=cfg.get('header', 0),
+        skipinitialspace=True
+    )
 
+    if cfg.get('columns') is not None:
+        df.columns = cfg['columns']
+
+    # converte possíveis símbolos de missing
+    df = df.replace('?', np.nan)
+
+    # remove espaços extras em colunas string
+    df = df.apply(lambda c: c.str.strip() if c.dtype == "object" else c)
+
+    # embaralha antes de cortar linhas (evita classes raras)
     if cfg.get('n_rows'):
+        df = df.sample(frac=1, random_state=seed).reset_index(drop=True)
         df = df.iloc[:cfg['n_rows']]
 
     if cfg['drop']:
         df = df.drop(columns=cfg['drop'])
 
+    # remove classes com apenas 1 amostra (necessário para stratify)
     target = cfg['target']
+    counts = df[target].value_counts()
+    df = df[df[target].isin(counts[counts > 1].index)]
+
     X = df.drop(columns=target)
     y = df[target]
 
