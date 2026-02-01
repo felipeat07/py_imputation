@@ -202,11 +202,35 @@ def run_experiment_rf(cfg, seed, missing_frac, k=5):
     np.random.seed(seed)
 
     # leitura
-    df = pd.read_csv(cfg['path'], header=None, names=cfg['columns'])
+    df = pd.read_csv(
+        cfg['path'],
+        sep=cfg.get('sep', ','),
+        header=cfg.get('header', 0),
+        skipinitialspace=True
+    )
+
+    if cfg.get('columns') is not None:
+        df.columns = cfg['columns']
+
+    # converte símbolos de missing
+    df = df.replace('?', np.nan)
+
+    # remove espaços extras em strings
+    df = df.apply(lambda c: c.str.strip() if c.dtype == "object" else c)
+
+    # embaralha antes de cortar linhas
     if cfg.get('n_rows'):
+        df = df.sample(frac=1, random_state=seed).reset_index(drop=True)
         df = df.iloc[:cfg['n_rows']]
+
     if cfg['drop']:
         df = df.drop(columns=cfg['drop'])
+
+    # remove classes com apenas 1 amostra (necessário para stratify)
+    target = cfg['target']
+    counts = df[target].value_counts()
+    df = df[df[target].isin(counts[counts > 1].index)]
+
 
     target = cfg['target']
     X = df.drop(columns=target)
