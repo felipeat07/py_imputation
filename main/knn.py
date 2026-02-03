@@ -40,8 +40,7 @@ DATASETS = {
             'Value-mean', 'Saturation-mean', 'Hue-mean'
         ],
         'target': 'Class',
-        'drop': [],
-        'n_rows': 100
+        'drop': []
     },
     'pen_based_recognition': {
         'path': 'data/pen_based_recognition/pendigits_full.csv',
@@ -49,8 +48,7 @@ DATASETS = {
         'header': 0,
         'columns': None,   
         'target': 'Class',
-        'drop': [],
-        'n_rows': 100
+        'drop': []
 },
     'student': {
         'path': 'data/student/student-por.csv', 
@@ -66,8 +64,7 @@ DATASETS = {
         'header': 0,
         'columns': None,
         'target': 'NObeyesdad',
-        'drop': [],
-        'n_rows': 100
+        'drop': []
     },
         'bank_marketing': {
         'path': 'data/bank/bank-full.csv',
@@ -75,8 +72,7 @@ DATASETS = {
         'header': 0,
         'columns': None,         # usa os nomes do CSV
         'target': 'job',           # coluna alvo (yes/no)
-        'drop': [],
-        'n_rows': 100
+        'drop': []
     },
     'balance_scale': {
         'path': 'data/balance_scale/balance-scale.data',
@@ -108,8 +104,7 @@ DATASETS = {
             'Class'
         ],
         'target': 'Class',
-        'drop': [],
-        'n_rows': 100
+        'drop': []
 },
     'car_evaluation': {
         'path': 'data/car_evaluation/car.data',
@@ -125,8 +120,7 @@ DATASETS = {
             'class'
         ],
         'target': 'class',
-        'drop': [],
-        'n_rows': 100
+        'drop': []
     }
 }
 

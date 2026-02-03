@@ -41,8 +41,7 @@ DATASETS = {
             'Value-mean', 'Saturation-mean', 'Hue-mean'
         ],
         'target': 'Class',
-        'drop': [],
-        'n_rows': 100
+        'drop': []
     },
     'pen_based_recognition': {
         'path': 'data/pen_based_recognition/pendigits_full.csv',
@@ -50,8 +49,7 @@ DATASETS = {
         'header': 0,
         'columns': None,   
         'target': 'Class',
-        'drop': [],
-        'n_rows': 100
+        'drop': []
 },
     'student': {
         'path': 'data/student/student-por.csv', 
@@ -67,8 +65,7 @@ DATASETS = {
         'header': 0,
         'columns': None,
         'target': 'NObeyesdad',
-        'drop': [],
-        'n_rows': 100
+        'drop': []
     },
         'bank_marketing': {
         'path': 'data/bank/bank-full.csv',
@@ -76,8 +73,7 @@ DATASETS = {
         'header': 0,
         'columns': None,         # usa os nomes do CSV
         'target': 'job',           # coluna alvo (yes/no)
-        'drop': [],
-        'n_rows': 100
+        'drop': []
     },
     'balance_scale': {
         'path': 'data/balance_scale/balance-scale.data',
@@ -109,8 +105,7 @@ DATASETS = {
             'Class'
         ],
         'target': 'Class',
-        'drop': [],
-        'n_rows': 100
+        'drop': []
 },
     'car_evaluation': {
         'path': 'data/car_evaluation/car.data',
@@ -126,8 +121,7 @@ DATASETS = {
             'class'
         ],
         'target': 'class',
-        'drop': [],
-        'n_rows': 100
+        'drop': []
     }
 }
 
@@ -235,6 +229,12 @@ def run_experiment_rf(cfg, seed, missing_frac, k=5):
     target = cfg['target']
     X = df.drop(columns=target)
     y = df[target]
+
+    # REMOVE instâncias com NaN nas FEATURES (necessário para KNN)
+    mask_complete_X = X.notna().all(axis=1)
+    X = X.loc[mask_complete_X]
+    y = y.loc[mask_complete_X]
+
 
     # split
     X_train, X_test, y_train, y_test = train_test_split(
