@@ -1,0 +1,75 @@
+===================================================
+BASE: obesity
+===================================================
+
+Missing: 10%
+Imputação              -> Média: 0.7980 | Std: 0.0260
+Classificador Original -> Média: 0.8070 | Std: 0.0135
+Classificador Imputado -> Média: 0.7999 | Std: 0.0129
+
+Missing: 20%
+Imputação              -> Média: 0.7881 | Std: 0.0192
+Classificador Original -> Média: 0.8070 | Std: 0.0135
+Classificador Imputado -> Média: 0.7915 | Std: 0.0122
+
+Missing: 30%
+Imputação              -> Média: 0.7802 | Std: 0.0171
+Classificador Original -> Média: 0.8070 | Std: 0.0135
+Classificador Imputado -> Média: 0.7800 | Std: 0.0132
+
+===================================================
+BASE: bank_marketing
+===================================================
+
+Missing: 10%
+Imputação              -> Média: 0.3143 | Std: 0.0075
+Classificador Original -> Média: 0.3126 | Std: 0.0029
+Classificador Imputado -> Média: 0.3114 | Std: 0.0033
+
+Missing: 20%
+Imputação              -> Média: 0.3125 | Std: 0.0067
+Classificador Original -> Média: 0.3126 | Std: 0.0029
+Classificador Imputado -> Média: 0.3098 | Std: 0.0034
+
+Missing: 30%
+Imputação              -> Média: 0.3121 | Std: 0.0053
+Classificador Original -> Média: 0.3126 | Std: 0.0029
+Classificador Imputado -> Média: 0.3083 | Std: 0.0035
+
+===================================================
+BASE: nursery
+===================================================
+
+Missing: 10%
+Imputação              -> Média: 0.7883 | Std: 0.0086
+Classificador Original -> Média: 0.7859 | Std: 0.0056
+Classificador Imputado -> Média: 0.7737 | Std: 0.0064
+
+Missing: 20%
+Imputação              -> Média: 0.7911 | Std: 0.0079
+Classificador Original -> Média: 0.7859 | Std: 0.0056
+Classificador Imputado -> Média: 0.7621 | Std: 0.0072
+
+Missing: 30%
+Imputação              -> Média: 0.7838 | Std: 0.0079
+Classificador Original -> Média: 0.7859 | Std: 0.0056
+Classificador Imputado -> Média: 0.7484 | Std: 0.0083
+
+===================================================
+BASE: car_evaluation
+===================================================
+
+Missing: 10%
+Imputação              -> Média: 0.7800 | Std: 0.0371
+Classificador Original -> Média: 0.7705 | Std: 0.0170
+Classificador Imputado -> Média: 0.7604 | Std: 0.0174
+
+Missing: 20%
+Imputação              -> Média: 0.7836 | Std: 0.0244
+Classificador Original -> Média: 0.7705 | Std: 0.0170
+Classificador Imputado -> Média: 0.7528 | Std: 0.0160
+
+Missing: 30%
+Imputação              -> Média: 0.7797 | Std: 0.0273
+Classificador Original -> Média: 0.7705 | Std: 0.0170
+Classificador Imputado -> Média: 0.7471 | Std: 0.0121
